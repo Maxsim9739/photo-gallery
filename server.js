@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
 // Используем PORT из переменных окружения для хостинга
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 
 // Для продакшена используем secure куки
 const isProduction = process.env.NODE_ENV === 'production';
