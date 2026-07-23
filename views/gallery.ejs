@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фотогалерея</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .role-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .role-editor {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .role-guest {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .photo-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .photo-card:hover .photo-image {
+            transform: scale(1.05);
+        }
+
+        .photo-info {
+            padding: 20px;
+        }
+
+        .photo-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .photo-description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .photo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .photo-date {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .like-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-like {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 5px;
+        }
+
+        .btn-like:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-like.liked {
+            color: #e74c3c;
+        }
+
+        .btn-like:not(.liked) {
+            color: #ccc;
+        }
+
+        .like-count {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 1200px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .modal-image {
+            width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 35px;
+            top: 15px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #bbb;
+        }
+
+        .upload-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .file-upload-label:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .upload-section {
+            display: none;
+        }
+
+        .upload-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ Фотогалерея</h1>
+            <div class="user-controls">
+                <% if (userRole === 'editor') { %>
+                    <span class="role-badge role-editor">👑 Редактор</span>
+                    <button class="btn btn-primary" onclick="toggleUploadForm()">
+                        📤 Загрузить фото
+                    </button>
+                    <a href="/logout" class="btn btn-outline">Выйти</a>
+                <% } else { %>
+                    <span class="role-badge role-guest">👤 Гость</span>
+                    <a href="/login" class="btn btn-primary">Войти как редактор</a>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Форма загрузки (только для редактора) -->
+        <% if (userRole === 'editor') { %>
+        <div id="uploadSection" class="upload-section">
+            <div class="upload-form">
+                <h2>Загрузить новое фото</h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Выберите фото:</label>
+                        <div class="file-upload">
+                            <label for="photoInput" class="file-upload-label">
+                                📁 Выбрать файл
+                            </label>
+                            <input type="file" id="photoInput" name="photo" accept="image/*" required>
+                        </div>
+                        <span id="fileName" style="margin-left: 10px; color: #666;"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="photoTitle">Название:</label>
+                        <input type="text" id="photoTitle" name="title" placeholder="Введите название фото">
+                    </div>
+                    <div class="form-group">
+                        <label for="photoDescription">Описание:</label>
+                        <textarea id="photoDescription" name="description" placeholder="Добавьте описание..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Загрузить</button>
+                    <button type="button" class="btn btn-outline" onclick="toggleUploadForm()">Отмена</button>
+                </form>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Галерея -->
+        <div class="gallery" id="gallery">
+            <% photos.forEach(photo => { %>
+            <div class="photo-card" data-id="<%= photo.id %>">
+                <img src="/uploads/<%= photo.filename %>" 
+                     alt="<%= photo.title %>" 
+                     class="photo-image"
+                     onclick="openModal('/uploads/<%= photo.filename %>', '<%= photo.title %>', '<%= photo.description %>')">
+                <div class="photo-info">
+                    <h3 class="photo-title"><%= photo.title %></h3>
+                    <p class="photo-description"><%= photo.description %></p>
+                    <div class="photo-meta">
+                        <span class="photo-date">
+                            📅 <%= new Date(photo.uploadDate).toLocaleDateString('ru-RU') %>
+                        </span>
+                        <div class="like-section">
+                            <button class="btn-like <%= photo.isLiked ? 'liked' : '' %>" 
+                                    onclick="toggleLike(<%= photo.id %>, this)">
+                                <%= photo.isLiked ? '❤️' : '🤍' %>
+                            </button>
+                            <span class="like-count"><%= photo.likes %></span>
+                        </div>
+                    </div>
+                    <% if (userRole === 'editor') { %>
+                    <div class="editor-controls">
+                        <button class="btn btn-outline btn-sm" onclick="editPhoto(<%= photo.id %>)">
+                            ✏️ Редактировать
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePhoto(<%= photo.id %>)">
+                            🗑️ Удалить
+                        </button>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра фото -->
+    <div id="imageModal" class="modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" class="modal-image">
+            <h2 id="modalTitle" style="color: white; margin-top: 20px;"></h2>
+            <p id="modalDescription" style="color: #ccc;"></p>
+        </div>
+    </div>
+
+    <script>
+        // Функции для модального окна
+        function openModal(imageSrc, title, description) {
+            document.getElementById('imageModal').style.display = 'block';
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDescription').textContent = description;
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна по клику вне изображения
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Функции для лайков
+        async function toggleLike(photoId, button) {
+            try {
+                const response = await fetch(`/photo/${photoId}/like`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Обновляем иконку и счетчик
+                    button.innerHTML = data.liked ? '❤️' : '🤍';
+                    button.className = `btn-like ${data.liked ? 'liked' : ''}`;
+                    button.parentElement.querySelector('.like-count').textContent = data.likes;
+                }
+            } catch (error) {
+                console.error('Ошибка при обработке лайка:', error);
+            }
+        }
+
+        // Функции для редактора
+        function toggleUploadForm() {
+            const uploadSection = document.getElementById('uploadSection');
+            if (uploadSection) {
+                uploadSection.classList.toggle('active');
+            }
+        }
+
+        // Отображение имени выбранного файла
+        document.getElementById('photoInput')?.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        // Загрузка фото
+        document.getElementById('uploadForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка загрузки: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при загрузке фото');
+            }
+        });
+
+        // Удаление фото
+        async function deletePhoto(photoId) {
+            if (!confirm('Вы уверены, что хотите удалить это фото?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/photo/${photoId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка удаления: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при удалении фото');
+            }
+        }
+
+        // Редактирование фото
+        async function editPhoto(photoId) {
+            const newTitle = prompt('Введите новое название:', '');
+            if (newTitle === null) return;
+            
+            const newDescription = prompt('Введите новое описание:', '');
+            if (newDescription === null) return;
+            
+            try {
+                const response = await fetch(`/photo/${photoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        description: newDescription
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка редактирования: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при редактировании фото');
+            }
+        }
+
+        // Закрытие модального окна по клавише Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
