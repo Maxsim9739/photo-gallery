@@ -20,6 +20,8 @@ app.use('/uploads', express.static('uploads'));
 app.set('view engine', 'ejs');
 
 // Session configuration для продакшена
+app.set('trust proxy', 1);
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
     resave: false,
