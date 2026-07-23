@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 
 // Используем PORT из переменных окружения для хостинга
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 
 // Для продакшена используем secure куки
 const isProduction = process.env.NODE_ENV === 'production';
