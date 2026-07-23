@@ -122,45 +122,40 @@
             <div class="error-msg"><%= error %></div>
         <% } %>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Имя пользователя</label>
-                <input type="text" id="username" name="username" required autocomplete="username" />
-            </div>
-            <div class="form-group">
-                <label for="password">Пароль</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password" />
-            </div>
-            <button type="submit">Войти</button>
-        </form>
+     <form id="loginForm">
+    <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        <input type="text" id="username" name="username" required placeholder="Введите имя пользователя">
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required placeholder="Введите пароль">
+    </div>
+    <button type="submit" class="btn-login">Войти</button>
+</form>
 
         <a href="/" class="back-link">← Вернуться в галерею</a>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                window.location.href = data.redirect || '/';
-            } else {
-                const existing = document.querySelector('.error-msg');
-                if (existing) existing.remove();
-                const err = document.createElement('div');
-                err.className = 'error-msg';
-                err.textContent = data.error || 'Ошибка входа';
-                document.getElementById('loginForm').before(err);
-            }
-        });
-    </script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    const res = await fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+        window.location.href = '/';
+    } else {
+        alert('Неверный логин или пароль!');
+    }
+});
+</script>
 </body>
 </html>
